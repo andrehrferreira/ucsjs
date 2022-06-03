@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UCS.js</title>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/rxjs/6.1.0/rxjs.umd.js"></script>
+    <script type="text/javascript" src="//cdn.rawgit.com/dcodeIO/protobuf.js/6.10.2/dist/protobuf.min.js"></script>
+  </head>
+  <body>
+    <div>Server datetime: <subscribe type="ServerTime">{{ServerTime}}</subscribe></div>
+
+    <script type="text/javascript" src="/client.js"></script>
+    <script type="text/javascript">
+      {{#interceptors}}
+      USCJS.addParser("{{key}}", {{{fn}}});
+      {{/interceptors}}
+    </script>
+  </body>
+</html>

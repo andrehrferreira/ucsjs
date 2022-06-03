@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package server;
+
+enum Types {
+    SERVER_TIME = 0;
+}
+
+message Empty {}
+
+message ServerMessageHeader{
+    int32 type = 1;
+}
+
+message Index{    
+    oneof msg { ServerMessageHeader header = 1; }
+    repeated string keys = 2;    
+}
+
+message ServerHeaderParser {
+    oneof msg { ServerMessageHeader header = 1; }
+}
+
+message ServerTime {
+    oneof msg { ServerMessageHeader header = 1; }
+    int64 datetime = 2;
+}
+
+message ClientMessage{
+    string type = 1;
+    string event = 2;
+}

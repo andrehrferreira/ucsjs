@@ -1,0 +1,49 @@
+# UCS.js: Unity Component System For Javascript
+## Web reactivity with Websocket, Protobuf and RXJS
+
+Andre Ferreira
+andrehrf@gmail.com
+www.ucsjs.io
+
+Abstract. The concept of Game Objects applied in Unity for games, if applied to the web, has benefits in the behavior of independent micro scopes that have an interactivity between members of the same element and the mutability of the data directly impacts other components that use this data reactively, I propose a solution for the implementation. Interlinking concepts of Delphi / Unity components, control of reactive states through RXJS, and transparent synchronization of data by gRPC without APIs intermediating the process, coding frontend and backend in the same "layer", independent of the use of frameworks using Typescript as " language" base, in a second layer create an IDE, 100% web, where it is possible to create and manipulate components in a visual way, interconnect plugins, templates, services such as s3, databases, queues, micro services, CDN, etc., to create fully or partially No-Code web systems, and publish to any cloud / kubernetes in a simple way. The application's output should also allow more advanced uses such as manual code implementations and/or frameworks such as React, Vue, etc., being able to interact directly with the control of reactive states in the development of complex interfaces.
+
+### 1. Introduction
+
+The web area has evolved based on Javascript following simple event-oriented principles, but in terms of responsibility the language does not have a solid structure, deriving standards such as Typescript, a fact that typing and object orientation was never important for Javascript only introduced in ECMAScript 2015, I popularized it with Node.js, obviously when Javacript was created it had no pretensions of being a language for creating robust applications, but with the popularization of the web it ended up taking the spotlight.
+
+Even though Javascript is almost 30 years old, and thousands of developers around the world, its evolution has been taking place at the level of standards, developing for the web still requires almost 100% code knowledge, even though in the past some tools like Dreamweaver, Frontpage, Delphi For PHP have been trying not to popularize creating for the web, as Delphi for Desktop was in the 90s and 2000s, but the purpose of this project goes far beyond simply creating a new paradigm for Javascript, but creating a tangible tool for an evolutionary step in web development, where at least partially non-professional developers can create applications with little or no code applying specific business rules through an interface that will help build semi-programmed systems using UCS.js as a base as well as the C# and the Unity language, Javascript will be the language for UCS.js, written in Typescript.
+
+### 2. Event looping
+
+In order to be able to perform a kind of data reactivity and directly impact sub-components that use this data, Unity uses a life cycle that, through functions such as Awake, Start, Update, LateUpdate, these data are updated, but this cycle of Updates generate serious performance problems when many scripts participate directly in the looping, so event creation and reactivity are highly recommended in game development, especially in Unity whose main thread is responsible for looping and rendering, the proposal and implementation of events. similar to Unity's Cycle Life but with more optimized native options for events and reactivity, similar to the implementation proposed by UniRX and RXJS.
+
+### 3. Reactivity
+
+Using the DOM as a way to search for data has become a problem for large web applications, with the creation of frontend frameworks like Angular, React and Vue concepts like Scope and Data Binding became popular and works well in cases of SPA applications that only have With the objective of creating a shell between Data > View, over time, persistence and the need to centralize data were created plugins such as Vuex and Redux, and to solve the problem of search indexers and the creation of hybrid applications between front x back Nuxt was born. .js, Next.js, the simplicity of applying data binding in these frameworks overshadowed the importance of reactivity when we talk about distributed scopes and using concepts from SOLID, the Single Responsibility Principle, but as mentioned earlier, Javascript was never the best example of implementation object orientation. Developers who were born in the web fever fail to understand the importance of reactivity for better performance of their applications, in addition to the long-term maintainability of the code.
+
+The first versions of Angular 1's Data Binding had major performance problems giving rise to Angular 2, and its rebellious derivatives like Vue.js, Angular's dependency injection syntax even today it seems to be one of the best ever made, but its performance hampered its popularization, not to mention that at the time the paradigm was so complicated to get into the heads of developers used to jQuery, that only more advanced teams actually developed great applications using it. The usage suggestion then the use of RXJS to implement reactivity.
+
+### 4. Functional Programming and Promises
+
+As it is about data updates in parallel, the use of Promises becomes essential for better application performance, so functional programming is a fundamental ally in this process. This premise should be followed whenever possible as the UCS.js standard.
+
+### 5. Rendering
+
+For years, the big question about the model would be how to implement the rendering, creating the code directly in the Browser's Javascript presents limitations and API dependency creating two applications or a large monolith, projects like Nuxt.js try to partially circumvent this problem. processing components and dynamically assembling the HTML output, but injecting data directly into the frontend Javascript, optimizing a Nuxt.js application for the standards of current search indexers is an almost impossible mission, in this scenario who has the best performance result still and the good and old MVC (Model-View-Controller) without judgment of values ​​in relation to other models, the fact is that web frameworks like React, Vue and Angular are better applied to SPA, jQuery is still one of the most used frameworks in the world because of the Wordpress, which in turn has the best structure for small websites, blogs, that need fast indexing, still thinking since CDN is a key piece to support large amounts of traffic without blowing up the cloud budget, keeping a simple and lightweight javascript on the frontend seems like the best way out
+
+In this scenario, the processing must occur mostly by the server, the output needs to be pre-processed and preferably with a static return to the CDN cache, page versioning changes can and should be done through HTTP headers such as Last-Modified and Etag for that the web server need to manage in memory or file cache, when distributed architecture is not a big problem reprocessing the page for each node, maybe a caching option via redis would make sense in the data responsible for rendering, but no more than 10 minutes being recycled through direct purge in the modification of the data if possible as a kind of Garbage Collector of local cache of the application.
+Once the application's View is generated, all dynamic content could be accessible through HTTP requests to APIs and considering application performance, via RPC with data from the application itself.
+
+### 6. Protobuf / RPC
+
+Stop a bit against the flow implement Protobuf for communication pattern between, API > Frontend application cases often even have separate repositories when applying microservices, but easily noticeable that the architecture goes to monolithic models easily as maintenance gets more and more complex , documentation and interconnection between microservices becomes hell to manage, even using documentation frameworks like Swager or Postman, keeping updated is an arduous task, so solutions like Kubernes were developed for infrastructure and gRPC for microservices.
+
+With well-defined gRPC interaction contracts, there are no implementation errors, as the contract externalizes exactly what data is trafficked between applications, Google project used by large companies, high-performance binary data transmission compatible with several languages, seems a very solid option .
+
+### 7. Realtime
+ 
+An important part of the concept that involves every project, for practical application updates to the code base need to reflect the render in real time, the idea of ​​componentizing web development like Delphi requires an interface that could simply work as a Backend of the application and therefore not be visually editable as a Wix project, but giving the freedom to create components and reuse them, with the same behavior as Unity, still allowing the creation of script in Typescript in the UCS.js standard, so that it is possible to change the application in a different way. to not interfere directly with the base of the application, and even to support a 100% web-native Realtime IDE, the realtime system needs to be independent with web server, and configurations to use Docker, standard Kubernetes as well as Nuxt.js using for Vue.
+
+### 8. Plugins
+
+The success of all web applications depends on some factors such as community, documentation, quality and possibilities to create core extensions, what would Node.js be without NPM, and why not use NPM itself to create and distribute plugins like this as many languages ​​have done, the plugin interface needs to have ways of accessing functionality.
