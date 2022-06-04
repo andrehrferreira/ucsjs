@@ -8,12 +8,20 @@ import Scope from "../core/scope";
 @Module("Array")
 export default class ArrayModule implements IModule{
     protected Proto: string = "Array.proto";
-    private storage: Array<string> = new Array<string>();
+    private storage: any = {};
 
     constructor(){
         
     }
 
+    has(name: string){
+
+    }
+
+    get(name: string){
+
+    }
+    
     @Event("Array:Insert")
     async insert(){
         //this.storage
