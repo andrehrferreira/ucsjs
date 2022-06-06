@@ -30,3 +30,9 @@ message ClientMessage{
     string type = 1;
     string event = 2;
 }
+
+message SyncArray{
+    string type = 1;
+    string namespace = 2;
+    string data = 3;
+}

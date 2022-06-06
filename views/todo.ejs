@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UCS.js - ToDo List</title>  
+    <style>
+      .todoBox{
+        border: 1px solid #000;
+        width: 500px;
+        height: 500px;
+      } 
+
+      .todoItem{
+        border-bottom: 1px solid #000;
+        width: calc(100% - 40px);
+        padding: 20px;
+      }
+
+      .todoInput{
+        border: 1px solid #000;
+        width: 360px;
+        padding: 10px;
+        font-size: 12px;
+        margin-top: 20px;
+      }
+
+      .todoButton{
+        width: 100px;
+        padding: 10px;
+        font-size: 12px;
+        margin-top: 20px;
+        margin-left: 20px;
+      }
+
+      .todoRemove{
+        float: right;
+        padding: 10px 20px 10px 20px;
+        margin-top: -10px;
+        background-color: #ff8484;
+        color: #FFF;
+        border: 1px solid #ad0000;
+      }
+    </style>  
+  </head>
+  <body>
+    <h1>ToDo List</h1>
+
+    <div id="app">
+      <div class="todoBox">
+        <% Scope.get("Array:ToDo").forEach((item) => { %>
+        <div ssr-data class="todoItem"><%= item %></div>
+        <% }); %>
+        <div v-for="(item, key) in todo" class="todoItem" v-cloak>
+          {{item}} 
+          <button class="todoRemove" @click="remove(key)">X</button>
+        </div>
+      </div>
+      
+      <input type="text" v-model="inputValue" class="todoInput" />
+      <button @click="add" class="todoButton">Add</button>
+    </div>
+
+    <script src="https://unpkg.com/vue@3"></script>
+    <script>
+      const { createApp } = Vue
+
+      createApp({
+        data() {
+          return {
+            todo: <%- JSON.stringify(Scope.get("Array:ToDo")); %>,
+            inputValue: ""
+          }
+        },
+        
+        watch: {
+          todo: {
+            handler: function (val, oldVal) {
+              USCJS.update("Array:ToDo", this.todo);
+            },
+            deep: true
+          }          
+        },
+
+        methods: {
+          add() {
+            this.todo.push(this.inputValue);            
+            this.inputValue = "";
+          },
+
+          remove(key){
+            this.todo = this.todo.filter((value, index) => index !== key);
+          }
+        }
+      }).mount('#app');
+    </script>
+  </body>
+</html>

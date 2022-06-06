@@ -7,7 +7,8 @@ class Main{
         this.sync = new rxjs.Subject();
         this.mainProto = "Server.proto";
         this.wsUrl = "ws://localhost:3005";
-        this.loadProtos();        
+        this.loadProtos();    
+        this.parserSSRData();    
     }
 
     async loadProtos(){
@@ -23,6 +24,14 @@ class Main{
         this.socket.addEventListener("error", (err) => console.log("error: ", err));    
         this.socket.addEventListener("close", () => setTimeout(() => document.location.reload(true), 1000));    
         this.socket.addEventListener('message', (event) => this.onMessage(event));
+    }
+
+    async parserSSRData(){
+        window.addEventListener('load', (event) => {
+            document.querySelectorAll("div[ssr-data]").forEach((elem) => {
+                elem.outerHTML = "<!-- -->";
+            })
+        });
     }
 
     bindEvents(){
@@ -73,7 +82,22 @@ class Main{
     addParser(namespace, fn){
         this.parser[namespace] = fn;
     }
+
+    update(namespace, value){
+        if(typeof value == "string"){
+
+        }
+        else if(typeof value == "number"){
+
+        }
+        else if(Array.isArray(value)){
+            let message = this.SSR.lookupType("server.SyncArray");
+            const buffer = message.encode({ namespace: namespace, data: JSON.stringify(value) }).finish();
+            this.socket.send(buffer);
+        }
+    }
 }
 
 const USCJS = new Main();
+document.uscjs = USCJS;
 window.uscjs = USCJS;

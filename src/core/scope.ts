@@ -1,4 +1,4 @@
-import { Observable } from "rxjs";
+import { Observable, BehaviorSubject } from "rxjs";
 
 interface ScopeData{
     key: string;
@@ -57,22 +57,36 @@ class Scope {
         return arr;
     }   
 
-    static setObservable<T>(key: string, observable: Observable<any>, fnPaser: Function){
+    static setObservable<T>(key: string, observable: Observable<any>, fnPaser: any = null){
         observable.subscribe((data: T) => {
             Scope.set(key, (fnPaser !== null) ? fnPaser(data) : data);
         });
 
-        Scope.pushArray("interceptors", { key, fn: fnPaser.toString() });
+        Scope.pushArray("interceptors", { key, fn: (fnPaser) ? fnPaser.toString() : "" });
+    }
+
+    static setReativeProperty<T>(key: string, property: BehaviorSubject<T>){
+        property.subscribe((data: T) => {
+            Scope.set(key, property.getValue());
+        });
+
+        Scope.set(key, property.getValue());
+        Scope.set(`${key}:Property`, property);
     }
 
     static has(key:string){
-        let item = Scope.storage.filter((elem) => elem.key === key);
-        return (item.length > 0);
+        return (Scope.state[key]);
     }
 
     static get(key:string){
-        let item = Scope.storage.filter((elem) => elem.key === key);
-        return (item.length > 0) ? item[0].data : null;
+        return (Scope.state[key]) ? Scope.state[key] : null;
+    }
+
+    static updateProperty(key: string, value: any){
+        try{
+            Scope.get(`${key}:Property`).next(value);
+        }
+        catch(e){}
     }
 }
 

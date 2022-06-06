@@ -1,17 +1,18 @@
 import path from "path";
 import express, { Express } from 'express';
-import mustacheExpress from "mustache-express";
 import * as http from "http";
 import * as ws from "ws";
 import protobuf, { Constructor } from "protobufjs";
 import { v4 as uuidv4 } from "uuid";
-import { Observable } from "rxjs";
+import { Observable, BehaviorSubject } from "rxjs";
 
 import Scope from "./scope";
+import Render from "./render";
 import IModule from './module.interface';
 
 export interface ServerSettings{
-    controllers: Array<object>;
+    plugins: Array<any>;
+    controllers: Array<any>;
     modules: Array<Constructor<IModule>>
 }
 
@@ -42,12 +43,21 @@ export default class Server {
         this.server = http.createServer(this.express);
         this.wss = new ws.Server<Socket>({ server: this.server });
 
-        this.express.engine("mst", mustacheExpress());
-        this.express.set("view engine", "mst");
+        this.express.set("view engine", "ejs");
         this.express.set("views", path.resolve("./views"));
 
         this.express.use(express.static("proto"));
         this.express.use(express.static("assets"));
+
+        if(settings.plugins.length > 0){
+            for(let plugin of settings.plugins)
+                this.express.use(plugin());          
+        }
+
+        if(settings.controllers.length > 0){
+            for(let controller of settings.controllers)
+                new controller(this);          
+        }
 
         this.loadDepentences();
         
@@ -65,12 +75,14 @@ export default class Server {
     }
 
     loadDepentences(){
+        Render.LoadBaseTemplate();
+
         let routes: Array<any> = Scope.get("routes");
 
         if(routes && routes.length> 0){
             for(let route of routes){
                 switch(route.type){
-                    case "get": this.express.get(route.url, route.fn); break;
+                    case "get": this.express.get(route.url, Render.ParseToExpress(route, this)); break;
                 }
             }
         }
@@ -85,7 +97,6 @@ export default class Server {
 
     parseMessage(buffer: any, ws: Socket){
         const message = this.parseClientMessage(buffer);
-        console.log(message.type + " / " + message.event);
                 
         switch(message.type){
             case "subscribe": 
@@ -99,12 +110,27 @@ export default class Server {
             case "unsubscribe": 
                 this.managerSubscribes[`${ws.id}:${message.event}`]?.unsubscribe();
             break;
-            //default: Scope.call(message.type, message.event);
+            default: 
+                const [Type, Name] = message.event.split(":");
+            
+                switch(Type){
+                    case "Array": 
+                        const parseArray = this.parseMessageByType("SyncArray", buffer);
+                        Scope.updateProperty(parseArray.namespace, JSON.parse(parseArray.data));
+                    break;
+                }
+            break;
         }
     }
 
     parseClientMessage(buffer: ArrayBuffer){
         const message = this.ssrRoot.lookupType("ClientMessage");   
+        const decode = message.decode(new Uint8Array(buffer));
+        return decode;
+    }
+
+    parseMessageByType(type: string, buffer: ArrayBuffer){
+        const message = this.ssrRoot.lookupType(type);   
         const decode = message.decode(new Uint8Array(buffer));
         return decode;
     }
@@ -128,6 +154,14 @@ export default class Server {
 
         if(global)
             Scope.setObservable(namespace, observable, fnPaser);
+    }
+
+    createReativeProperty<T>(namespace: string, property: BehaviorSubject<T>, global: boolean = false){
+        //let observable = property.asObservable();
+        this.events[namespace] = property;
+
+        if(global)
+            Scope.setReativeProperty(namespace, property);
     }
 
     use(module: IModule){
