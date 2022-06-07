@@ -112,3 +112,4 @@ exports
 *.cache
 build
 dist
+data

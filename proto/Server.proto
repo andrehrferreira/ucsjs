@@ -29,6 +29,7 @@ message ServerTime {
 message ClientMessage{
     string type = 1;
     string event = 2;
+    string namespace = 3;
 }
 
 message SyncArray{

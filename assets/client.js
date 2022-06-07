@@ -4,6 +4,8 @@ class Main{
         this.events = {};
         this.index = [];
         this.parser = {};
+        this.eventType = {};
+        this.lastMessage = null;
         this.sync = new rxjs.Subject();
         this.mainProto = "Server.proto";
         this.wsUrl = "ws://localhost:3005";
@@ -19,7 +21,6 @@ class Main{
 
         this.socket = new WebSocket(this.wsUrl);    
         this.socket.binaryType = 'arraybuffer';
-
         this.socket.addEventListener("open", this.onConnect.bind(this));    
         this.socket.addEventListener("error", (err) => console.log("error: ", err));    
         this.socket.addEventListener("close", () => setTimeout(() => document.location.reload(true), 1000));    
@@ -56,34 +57,61 @@ class Main{
     }
 
     onMessage(event){
-        let headerParser = this.SSR.lookupType("server.ServerHeaderParser");
-        const headerRaw = headerParser.decode(new Uint8Array(event.data));
-        
-        if(headerRaw.header.type === 0 && this.index.length === 0){
-            const indexRoot = this.SSR.lookupType("server.Index");
-            const indexList = indexRoot.decode(new Uint8Array(event.data));
-            this.index = indexList.keys;
+        try{
+            this.lastMessage = event;
+            let clientPacket, headerRaw = null;
+
+            try{
+                let headerParser = this.SSR.lookupType("server.ServerHeaderParser");
+                headerRaw = headerParser.decode(new Uint8Array(event.data));
+            }
+            catch(e){
+                let headerParser = this.SSR.lookupType("server.ClientMessage");
+                clientPacket = headerParser.decode(new Uint8Array(event.data)); 
+            }
+
+            if(clientPacket && this.eventType[clientPacket.event]){
+                const indexRoot = this.SSR.lookupType(`server.${this.eventType[clientPacket.event]}`);
+                const indexList = indexRoot.decode(new Uint8Array(event.data));
+
+                if(clientPacket.event == "SyncArray" || clientPacket.event == "SyncObject")
+                    indexList.data = JSON.parse(indexList.data);
+
+                if(this.events[indexList.namespace])
+                    this.events[indexList.namespace].next(indexList.data, indexList);
+            }
+            else if(headerRaw.header.type === 0 && this.index.length === 0){
+                const indexRoot = this.SSR.lookupType("server.Index");
+                const indexList = indexRoot.decode(new Uint8Array(event.data));
+                this.index = indexList.keys;
+            }             
+            else{
+                const indexRoot = this.SSR.lookupType(`server.${this.index[headerRaw.header.type]}`);
+                const indexList = indexRoot.decode(new Uint8Array(event.data));
+                
+                if(this.events[this.index[headerRaw.header.type]])
+                    this.events[this.index[headerRaw.header.type]].next(indexList);
+            }   
         }
-        else{
-            const indexRoot = this.SSR.lookupType(`server.${this.index[headerRaw.header.type]}`);
-            const indexList = indexRoot.decode(new Uint8Array(event.data));
-            
-            if(this.events[this.index[headerRaw.header.type]])
-                this.events[this.index[headerRaw.header.type]].next(indexList);
-        } 
+        catch(e){ console.log(e); }
     }
 
-    sendMessage(data){
-        let message = this.SSR.lookupType("server.ClientMessage");
+    sendMessage(data, type = "server.ClientMessage"){
+        let message = this.SSR.lookupType(type);
         const buffer = message.encode(data).finish();
-        this.socket.send(buffer);
+        const readyState = (this.socket && this.socket.readyState == WebSocket.OPEN);
+
+        if(readyState)
+            this.socket.send(buffer);
+
+        return readyState;
     }
 
     addParser(namespace, fn){
         this.parser[namespace] = fn;
     }
 
-    update(namespace, value){
+    next(namespace, value){
         if(typeof value == "string"){
 
         }
@@ -95,6 +123,28 @@ class Main{
             const buffer = message.encode({ namespace: namespace, data: JSON.stringify(value) }).finish();
             this.socket.send(buffer);
         }
+    }
+
+    vue3Plugin(){
+        return {
+            install(app, options){
+                app.config.globalProperties.$subcribe = (event, namespace, fn) => {
+                    USCJS.eventType[namespace] = event;
+
+                    let persist = setInterval(() => {
+                        if(this.SSR !== null){
+                            if(USCJS.sendMessage({type: "subscribe", event, namespace})){                                
+                                if(!USCJS.events[namespace])
+                                    USCJS.events[namespace] = new rxjs.Subject();
+                                
+                                USCJS.events[namespace].subscribe({ next: (value, message) => fn(value, message) });
+                                clearInterval(persist);
+                            }
+                        }
+                    }, 100);                    
+                }
+            }
+        };
     }
 }
 

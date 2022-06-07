@@ -101,9 +101,14 @@ export default class Server {
         switch(message.type){
             case "subscribe": 
                 try{
-                    this.managerSubscribes[`${ws.id}:${message.event}`] = this.events[message.event]?.subscribe((data: any) => {
+                    let eventName = (message.namespace) ? message.namespace : message.event;
+
+                    this.managerSubscribes[`${ws.id}:${eventName}`] = this.events[eventName]?.subscribe((data: any) => {
                         this.sendMessage(message.event, data, ws);
                     });
+
+                    if(this.events[eventName] instanceof BehaviorSubject)
+                        this.sendMessage(message.event, { data: this.events[eventName].getValue(), ...message }, ws);          
                 }   
                 catch(e){ console.log(e); }
             break;
@@ -136,16 +141,23 @@ export default class Server {
     }
 
     sendMessage(type: string, data: any, ws: ws.WebSocket){  
-        const root = this.ssrRoot.lookupType(type);                 
+        const root = this.ssrRoot.lookupType(type);     
         
         if(typeof data === "string"){
             const buffer = root.encode(data).finish();
-            ws.send(buffer);
+
+            if(buffer.length > 0)
+                ws.send(buffer);
         }
         else if(typeof data === "object"){
+            if(typeof data.data == "object")
+                data.data = JSON.stringify(data.data);
+
             const message = root.fromObject(data);
             const buffer = root.encode(message).finish();
-            ws.send(buffer);
+
+            if(buffer.length > 0)
+                ws.send(buffer);
         }
     }
 
@@ -156,12 +168,14 @@ export default class Server {
             Scope.setObservable(namespace, observable, fnPaser);
     }
 
-    createReativeProperty<T>(namespace: string, property: BehaviorSubject<T>, global: boolean = false){
+    async createReativeProperty<T>(namespace: string, property: BehaviorSubject<T>, global: boolean = false){
         //let observable = property.asObservable();
         this.events[namespace] = property;
 
         if(global)
             Scope.setReativeProperty(namespace, property);
+
+        return this.events[namespace];
     }
 
     use(module: IModule){

@@ -28,10 +28,10 @@ export default class Render{
     }
 
     public static MergeBaseTemplate(currentTemplate: string){
-        const startPos = currentTemplate.indexOf("</body>");        
+        const startPos = currentTemplate.indexOf("<body>");        
         const startTemplate = currentTemplate.substring(0, startPos);
-        const endTemplate = currentTemplate.replace(startTemplate, "");
-        return `${startTemplate}\r\n${this._base}\r\n</body>\r\n${endTemplate}`;
+        const endTemplate = currentTemplate.replace(`${startTemplate}<body>`, "");
+        return `${startTemplate}\r\n<body>\r\n${this._base}\r\n${endTemplate}`;
     }
 
     public static ParseToExpress(renderSettings: IRenderSettings, server: Server): any{

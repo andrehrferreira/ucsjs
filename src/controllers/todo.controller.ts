@@ -1,14 +1,24 @@
+import fs from "fs";
+import path from "path";
 import { Request, Response } from 'express';
 import { BehaviorSubject } from "rxjs";
 import { Controller, Get } from "../core/controller";
 
 import Server from "../core/server";
-import Scope from '../core/scope';
 
 @Controller("todo")
 export default class ToDoController{
     constructor(server: Server){
-        server.createReativeProperty<Array<string>>("Array:ToDo", new BehaviorSubject(new Array<string>()), true);
+        const persistFile = path.resolve("./data/todo.json");
+
+        server.createReativeProperty<Array<string>>("Array:ToDo", new BehaviorSubject(new Array<string>()), true).then((Property) => {
+            if(fs.existsSync(persistFile))
+                Property?.next(JSON.parse(fs.readFileSync(persistFile).toString()));
+            
+            Property?.subscribe((value: Array<string>) => { 
+                fs.writeFileSync(path.resolve(persistFile), JSON.stringify(value)) 
+            })
+        });
     }
 
     @Get("/todo", { template: "todo" })
