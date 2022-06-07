@@ -1,0 +1,11 @@
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/rxjs/6.1.0/rxjs.umd.js"></script>
+<script type="text/javascript" src="//cdn.rawgit.com/dcodeIO/protobuf.js/6.10.2/dist/protobuf.min.js"></script>
+<script type="text/javascript" src="//unpkg.com/vue@3"></script>
+<script type="text/javascript" src="/client.js"></script>
+<script type="text/javascript">
+    <% interceptors.forEach((data) => { %>
+        <% if(data.fn) { %>
+        USCJS.addParser("<%= data.key %>", <%- data.fn -%>); 
+        <% } %> 
+    <% }); %>
+</script>

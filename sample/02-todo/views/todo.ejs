@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UCS.js - ToDo List</title>  
+    <link rel="stylesheet" type="text/css" href="/style.css"> 
+  </head>
+  <body>
+    <h1>ToDo List</h1>
+
+    <div id="app">
+      <div class="todoBox">
+        <% Scope.get("Array:ToDo").forEach((item) => { %>
+        <div ssr-data class="todoItem"><%= item %></div>
+        <% }); %>
+        <div v-for="(item, key) in todo" class="todoItem" v-cloak>
+          {{item}} 
+          <button class="todoRemove" @click="remove(key)">X</button>
+        </div>
+      </div>
+      
+      <input type="text" v-model="inputValue" class="todoInput" />
+      <button @click="add" class="todoButton">Add</button>
+    </div>
+
+    <script>
+      const { createApp } = Vue;
+
+      const app = createApp({
+        data() {
+          return {
+            todo: null,
+            inputValue: ""
+          }
+        },
+
+        mounted(){          
+          this.$subcribe("SyncArray", "Array:ToDo", (value, message) => {
+            this.todo = JSON.parse(value);            
+          });
+        },
+        
+        watch: {
+          todo: {
+            handler: function (val, oldVal) {
+              USCJS.next("Array:ToDo", this.todo);
+            },
+            deep: true
+          }          
+        },
+
+        methods: {
+          add() {
+            this.todo.push(this.inputValue);            
+            this.inputValue = "";
+          },
+
+          remove(key){
+            this.todo = this.todo.filter((value, index) => index !== key);
+          }
+        }
+      })
+      .use(USCJS.vue3Plugin())
+      .mount('#app');
+    </script>
+  </body>
+</html>

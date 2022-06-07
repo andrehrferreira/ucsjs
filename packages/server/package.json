@@ -1,0 +1,41 @@
+{
+  "name": "@ucsjs/server",
+  "version": "0.0.1",
+  "description": "UCS.js: Web reactivity with Websocket, Protobuf and RXJS (@server)",
+  "author": "Andre Ferreira",
+  "license": "MIT",
+  "private": false,
+  "homepage": "https://ucsjs.io",
+  "funding": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/ucsjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ucsjs"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "compression": "^1.7.4",
+    "ejs": "^3.1.8",
+    "express": "^4.18.1",
+    "protobufjs": "^6.11.3",
+    "rxjs": "^7.5.5",
+    "uuid": "^8.3.2",
+    "ws": "^8.7.0"
+  },
+  "devDependencies": {
+    "@types/ejs": "^3.1.1",
+    "@types/express": "^4.17.13",
+    "@types/node": "^17.0.38",
+    "@types/rx": "^4.1.2",
+    "@types/uuid": "^8.3.4",
+    "@types/ws": "^8.5.3",
+    "ts-node": "^10.8.1",
+    "nodemon": "^2.0.16",
+    "typescript": "^4.7.2"
+  },
+  "peerDependencies": {}
+}
